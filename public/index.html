@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WEB CHECKER</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+
+  <body>
+    <div class="container">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">WEB CHECKER</a>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+          <ul class="nav">
+            <li class="nav-item"><a href="logout.html">ログアウト</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <h1>スケジュール一覧</h1>
+
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>スケジュール</th>
+            <th>タイトル</th>
+            <th>URL</th>
+            <th>セレクタ</th>
+            <th>通知先</th>
+            <th>編集</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+
+        <tbody id="create">
+          <tr>
+            <td><input type="text" class="form-control schedule" placeholder="0 * * * *" value="0 * * * *"></input><small class="form-text text-muted"><a href="https://crontab.guru" target="_BLANK">crontab 形式</a>。分は無視されます。</small></td>
+            <td><input type="text" class="form-control title"></input></td>
+            <td><input type="text" class="form-control uri" placeholder="https://" value="https://"></input></td>
+            <td><input type="text" class="form-control selector" placeholder="#hoge, .bar:nth-child(3)"><small class="form-text text-muted">CSS3 Selector 形式。</small></td>
+            <td><input type="text" class="form-control slack" placeholder="#slack"></input><small class="form-text text-muted">Slack の通知先チャネル名。空白可</small></td>
+            <td><button id="create-button" class="btn btn-primary">新規追加</button></td>
+          </tr>
+        </tbody>
+
+        <tbody id="records">
+        </tbody>
+      </table>
+    </div>
+
+    <div id="loading" class="text-center" style="display: none; position: absolute; left: 50%; top: 30%;">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+
+    <script src="/__/firebase/6.4.0/firebase-app.js"></script>
+    <script src="/__/firebase/6.4.0/firebase-auth.js"></script>
+    <script src="/__/firebase/6.4.0/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="./javascripts/routing.js"></script>
+    <script>
+     const db = firebase.firestore();
+     $('#loading').fadeIn(0);
+     db.collection('schedules').orderBy('createdAt', 'desc').get().then(doc => { doc.forEach(schedule => {
+       const id = schedule.id;
+       const scheduleDom = $(`
+<tr id="${id}">
+  <td rowspan="2"><input type="text" class="form-control schedule" readonly="readonly" value="${schedule.data().schedule}" data-value="${schedule.data().schedule}"></input>
+  <td rowspan="2"><input type="text" class="form-control title"    readonly="readonly" value="${schedule.data().title}"    data-value="${schedule.data().title}"></input></td>
+  <td rowspan="2"><input type="text" class="form-control uri"      readonly="readonly" value="${schedule.data().uri}"      data-value="${schedule.data().uri}"></input></td>
+  <td rowspan="2"><input type="text" class="form-control selector" readonly="readonly" value="${schedule.data().selector}" data-value="${schedule.data().selector}"></input></td>
+  <td rowspan="2"><input type="text" class="form-control slack"    readonly="readonly" value="${schedule.data().slack || ''}"    data-value="${schedule.data().slack || ''}"></input></td>
+  <td><button id="edit-${schedule.id}"   class="edit   btn btn-primary" data-id="${schedule.id}">編集</button>
+      <button id="save-${schedule.id}"   class="save   btn btn-primary" data-id="${schedule.id}">保存</button>
+      <button id="cancel-${schedule.id}" class="cancel btn btn-light"   data-id="${schedule.id}">x</button>
+      <button id="delete-${schedule.id}" class="delete btn btn-danger"  data-id="${schedule.id}">削除</button></td>
+  <td><a href="./detail.html?scheduleId=${schedule.id}" class="btn btn-link" role="button">履歴</a></td>
+</tr>
+<tr>
+  <td colspan="2" class="text-right"><small class="form-text text-muted">最終チェック日時: ${new Date(schedule.data().checkedAt).toLocaleString()}</small></td>
+</tr>
+       `);
+       $('#records').append(scheduleDom);
+       $('.save').hide();
+       $('.cancel').hide();
+       $('#loading').fadeOut();
+
+       $(`#edit-${id}`).on('click', (event) => {
+         $(`#${id} input`).prop('readonly', false);
+         $(`.edit:not(#edit-${id})`).prop('disabled', true);
+         $(`#edit-${id}`).hide();
+         $(`#save-${id}`).show();
+         $('.delete').hide();
+         $(`#cancel-${id}`).show();
+       });
+
+       $(`#save-${id}`).on('click', (event) => {
+         $('#loading').show().fadeIn();
+
+         db.collection('schedules').doc(id).set({
+           schedule: $(`#${id} .schedule`).val(),
+           uri: $(`#${id} .uri`).val(),
+           title: $(`#${id} .title`).val(),
+           selector: $(`#${id} .selector`).val(),
+           slack: $(`#${id} .slack`).val(),
+           updatedUser: firebase.auth().currentUser.email,
+         }, { merge: true }).then(() => {
+           $(`#${id} .schedule`).data('value', $(`#${id} .schedule`).val()),
+           $(`#${id} .title`).data('value', $(`#${id} .title`).val()),
+           $(`#${id} .uri`).data('value', $(`#${id} .uri`).val()),
+           $(`#${id} .selector`).data('value', $(`#${id} .selector`).val()),
+           $(`#${id} .slack`).data('value', $(`#${id} .slack`).val()),
+
+           $(`#${id} input`).prop('readonly', true);
+           $(`button.edit`).prop('disabled', false);
+           $(`#save-${id}`).hide();
+           $(`#edit-${id}`).show();
+           $('.delete').show();
+           $(`#cancel-${id}`).hide();
+
+           $('#loading').fadeOut(0);
+         }).catch(err => {
+           console.error(err);
+           alert(err);
+         });
+       });
+
+       $(`#cancel-${id}`).on('click', (event) => {
+         $(`#${id} input`).prop('readonly', true)
+                          .each((i, dom) => { $(dom).val($(dom).data('value')); });
+         $(`button.edit`).prop('disabled', false);
+         $(`#save-${id}`).hide();
+         $(`#edit-${id}`).show();
+         $('.delete').show();
+         $(`#cancel-${id}`).hide();
+       });
+
+       $(`#delete-${id}`).on('click', (event) => {
+         if(!confirm('本当に削除しますか？')) { return; }
+
+         $('#loading').show().fadeIn();
+         db.collection('schedules').doc(id).delete().then(() => {
+           $('#loading').fadeOut(0);
+           alert('削除されました');
+           $(`#${id}`).remove();
+         }).catch(err => {
+           console.error(err);
+           alert(err);
+         });
+       });
+     });
+
+       $(`#create-button`).on('click', (event) => {
+         $('#loading').show().fadeIn();
+
+         const _schedule = $('#create .schedule').val();
+         const _uri = $('#create .uri').val();
+         const _title = $('#create .title').val();
+         const _selector = $('#create .selector').val();
+         const _slack = $('#create .slack').val() || '';
+
+         if(!(_schedule.match(/^.*\s.*\s.*\s.*\s.*$/) && _title && _uri.match(/^http(s)?:\/\/.+$/) && _selector)) {
+           $('#loading').show().fadeOut();
+           alert('すべての項目を入力してください');
+           return;
+         }
+
+         db.collection('schedules').add({
+           schedule: _schedule,
+           uri: _uri,
+           title: _title,
+           selector: _selector,
+           slack: _slack,
+           createdUser: firebase.auth().currentUser.email,
+           createdAt: +new Date(),
+           checkedAt: +new Date()
+         }).then(() => {
+           location.href = 'index.html';
+           $('#loading').fadeOut(0);
+         }).catch(err => {
+           console.error(err);
+           alert(err);
+         });
+       });
+
+     });
+    </script>
+  </body>
+</html>
