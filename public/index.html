@@ -1,50 +1,111 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WEB CHECKER</title>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  </head>
 
-  <body>
-    <div class="container">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">WEB CHECKER</a>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
-          <ul class="nav">
-            <li class="nav-item"><a href="logout.html">ログアウト</a></li>
-          </ul>
-        </div>
-      </nav>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redmine Scheduler</title>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
 
-      <h1>スケジュール一覧</h1>
+<body>
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Redmine Scheduler</a>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+        <ul class="nav">
+          <li class="nav-item"><a href="logout.html">ログアウト</a></li>
+        </ul>
+      </div>
+    </nav>
 
+    <div id="create" class="mt-4 p-4 border border-secondary bg-light">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>実行間隔（日付の指定日）</th>
+            <th>何日前に生成するか</th>
+            <th>Slack 通知先</th>
+            <th>APIアクセスキー</th>
+          </tr>
+        <tbody>
+          <tr>
+            <td><input type="text" class="form-control schedule" placeholder="0 * * * *"
+                value="0 * * * *"></input>
+                <small class="form-text text-muted">
+                  <a href="https://crontab.guru" target="_BLANK">crontab 形式</a>。分は無視され、実行は数分ずれます。<br />
+                  例1) 毎週月曜日の10時 => <b>* 10 * * 1</b><br />
+                  例2) 毎月15日の12時 => <b>* 12 15 * *</b><br />
+                  例3) 平日の18時 => <b>* 18 * * 1-5</b><br />
+                  例4) 毎月5,15,25日 => <b>* 10 5,15,25 * *</b>
+                </small></td>
+            <td><input type="number" class="form-control date_diff" placeholder="-2" max="0"></input>
+              <small class="form-text text-muted">
+                ページ名の n日前に生成します<br />
+                0: 当日<br />
+                -1: 1 日前<br />
+                -2: 2 日前<br />
+                ...<br />
+              </small></td>
+            <td><input type="text" class="form-control slack" placeholder="#slack"></input><small
+                class="form-text text-muted">Slack の通知先チャネル名</small></td>
+            <td><input type="text" class="form-control access_key"></input><small class="form-text text-muted">Redmine
+                の<a href="https://redmine.aiming-inc.biz/my/account" target="_BLANK">APIアクセスキー</a>。<br/>暗号化して DB に格納されます。</small></td>
+          </tr>
+        </tbody>
+      </table>
       <table class="table table-sm">
         <thead>
           <tr>
-            <th>スケジュール</th>
-            <th>タイトル</th>
-            <th>URL</th>
-            <th>セレクタ</th>
-            <th>通知先</th>
-            <th>編集</th>
-            <th>詳細</th>
+            <th>Redmineプロジェクト名</th>
+            <th>テンプレートページ</th>
+            <th>生成するページのタイトル</th>
+            <th>親ページ</th>
           </tr>
         </thead>
 
-        <tbody id="create">
+        <tbody>
           <tr>
-            <td><input type="text" class="form-control schedule" placeholder="0 * * * *" value="0 * * * *"></input><small class="form-text text-muted"><a href="https://crontab.guru" target="_BLANK">crontab 形式</a>。分は無視されます。</small></td>
-            <td><input type="text" class="form-control title"></input></td>
-            <td><input type="text" class="form-control uri" placeholder="https://" value="https://"></input></td>
-            <td><input type="text" class="form-control selector" placeholder="#hoge, .bar:nth-child(3)"><small class="form-text text-muted">CSS3 Selector 形式。</small></td>
-            <td><input type="text" class="form-control slack" placeholder="#slack"></input><small class="form-text text-muted">Slack の通知先チャネル名。空白可</small></td>
-            <td><button id="create-button" class="btn btn-primary">新規追加</button></td>
+            <td><input type="text" class="form-control project" placeholder="sandbox"></input></td>
+            <td><input type="text" class="form-control template" placeholder="MinutesTemplate"></input><small
+                class="form-text text-muted">ここで指定したテンプレートの内容をコピーします</small></td>
+            <td><input type="text" class="form-control title" placeholder="Minutes_YYYYMMDD"><small
+                class="form-text text-muted">Minutes_YYYYMMDD のように日付を含めて指定してください<br/>
+              例1) YYYYMMDD_定例<br/>
+              例2) 月次定例_YYYYMM<br/>
+              例3) Minutes_YYYY年MM月DD日
+            </small></td>
+            <td><input type="text" class="form-control parent" placeholder="Wiki"></input><small
+                class="form-text text-muted">空欄の場合、親ページは wiki になります</small></td>
           </tr>
         </tbody>
+      </table>
+      <div>
+        <h6>テンプレートページ</h6>
+        <code id="template-page"><a target="_BLANK">https://</a></code>
+        <h6 class="mt-4">生成されるページ</h6>
+        <code id="generated-page"><a target="_BLANK">https://</a></code>
+      </div>
+      <div class="text-right"><button id="create-button" class="btn btn-primary">新規追加</button></div>
+    </div>
 
+    <div class="mt-5">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>実行間隔</th>
+            <th>生成日</th>
+            <th>Slack 通知先</th>
+            <th>プロジェクト</th>
+            <th>テンプレート</th>
+            <th>タイトル</th>
+            <th>親ページ</th>
+            <th>アクセスキー</th>
+          </tr>
+        </thead>
         <tbody id="records">
         </tbody>
       </table>
@@ -62,131 +123,165 @@
     <script src="/__/firebase/init.js"></script>
     <script src="./javascripts/routing.js"></script>
     <script>
-     const db = firebase.firestore();
-     $('#loading').fadeIn(0);
-     db.collection('schedules').orderBy('createdAt', 'desc').get().then(doc => { doc.forEach(schedule => {
-       const id = schedule.id;
-       const scheduleDom = $(`
+      const db = firebase.firestore();
+      $('#loading').fadeIn(0);
+      db.collection('schedules').orderBy('createdAt', 'desc').get().then(doc => {
+        doc.forEach(schedule => {
+          const id = schedule.id;
+          const scheduleDom = $(`
 <tr id="${id}">
-  <td rowspan="2"><input type="text" class="form-control schedule" readonly="readonly" value="${schedule.data().schedule}" data-value="${schedule.data().schedule}"></input>
-  <td rowspan="2"><input type="text" class="form-control title"    readonly="readonly" value="${schedule.data().title}"    data-value="${schedule.data().title}"></input></td>
-  <td rowspan="2"><input type="text" class="form-control uri"      readonly="readonly" value="${schedule.data().uri}"      data-value="${schedule.data().uri}"></input></td>
-  <td rowspan="2"><input type="text" class="form-control selector" readonly="readonly" value="${schedule.data().selector}" data-value="${schedule.data().selector}"></input></td>
-  <td rowspan="2"><input type="text" class="form-control slack"    readonly="readonly" value="${schedule.data().slack || ''}"    data-value="${schedule.data().slack || ''}"></input></td>
-  <td><button id="edit-${schedule.id}"   class="edit   btn btn-primary" data-id="${schedule.id}">編集</button>
+  <td><input type="text" class="form-control schedule"   readonly="readonly" value="${schedule.data().schedule}"  data-value="${schedule.data().schedule}"></input></td>
+  <td><input type="number" max=0 class="form-control date_diff"  readonly="readonly" value="${schedule.data().date_diff}" data-value="${schedule.data().date_diff}"></input></td>
+  <td><input type="text" class="form-control slack"      readonly="readonly" value="${schedule.data().slack || ''}" data-value="${schedule.data().slack || ''}"></input></td>
+  <td><input type="text" class="form-control project"    readonly="readonly" value="${schedule.data().project}"   data-value="${schedule.data().project}"></input></td>
+  <td><input type="text" class="form-control template"   readonly="readonly" value="${schedule.data().template}"  data-value="${schedule.data().template}"></input></td>
+  <td><input type="text" class="form-control title"      readonly="readonly" value="${schedule.data().title}"     data-value="${schedule.data().title}"></input></td>
+  <td><input type="text" class="form-control parent"     readonly="readonly" value="${schedule.data().parent}"    data-value="${schedule.data().parent}"></input></td>
+  <td><input type="text" class="form-control access_key" readonly="readonly" placeholder="非表示"></input></td>
+</tr>
+<tr>
+  <td colspan="2"><small class="form-text text-muted">ID: ${id}</small></td>
+  <td colspan="2"><small class="form-text text-muted">作成者: ${schedule.data().createdUser}<br/>最終更新者: ${schedule.data().updatedUser}</small></td>
+  <td colspan="2" class="text-right"><small class="form-text text-muted">最終チェック日時: ${new Date(schedule.data().checkedAt).toLocaleString()}</small></td>
+  <td colspan="2" class="text-right"><button id="edit-${schedule.id}"   class="edit   btn btn-primary" data-id="${schedule.id}">編集</button>
       <button id="save-${schedule.id}"   class="save   btn btn-primary" data-id="${schedule.id}">保存</button>
       <button id="cancel-${schedule.id}" class="cancel btn btn-light"   data-id="${schedule.id}">x</button>
       <button id="delete-${schedule.id}" class="delete btn btn-danger"  data-id="${schedule.id}">削除</button></td>
-  <td><a href="./detail.html?scheduleId=${schedule.id}" class="btn btn-link" role="button">履歴</a></td>
 </tr>
-<tr>
-  <td colspan="2" class="text-right"><small class="form-text text-muted">最終チェック日時: ${new Date(schedule.data().checkedAt).toLocaleString()}</small></td>
-</tr>
-       `);
-       $('#records').append(scheduleDom);
-       $('.save').hide();
-       $('.cancel').hide();
-       $('#loading').fadeOut();
+`);
+          $('#records').append(scheduleDom);
+          $('.save').hide();
+          $('.cancel').hide();
+          $('#loading').fadeOut();
 
-       $(`#edit-${id}`).on('click', (event) => {
-         $(`#${id} input`).prop('readonly', false);
-         $(`.edit:not(#edit-${id})`).prop('disabled', true);
-         $(`#edit-${id}`).hide();
-         $(`#save-${id}`).show();
-         $('.delete').hide();
-         $(`#cancel-${id}`).show();
-       });
+          $(`#edit-${id}`).on('click', (event) => {
+            $(`#${id} input`).prop('readonly', false);
+            $(`.edit:not(#edit-${id})`).prop('disabled', true);
+            $(`#edit-${id}`).hide();
+            $(`#save-${id}`).show();
+            $('.delete').hide();
+            $(`#cancel-${id}`).show();
+          });
 
-       $(`#save-${id}`).on('click', (event) => {
-         $('#loading').show().fadeIn();
+          $(`#save-${id}`).on('click', (event) => {
+            $('#loading').show().fadeIn();
 
-         db.collection('schedules').doc(id).set({
-           schedule: $(`#${id} .schedule`).val(),
-           uri: $(`#${id} .uri`).val(),
-           title: $(`#${id} .title`).val(),
-           selector: $(`#${id} .selector`).val(),
-           slack: $(`#${id} .slack`).val(),
-           updatedUser: firebase.auth().currentUser.email,
-         }, { merge: true }).then(() => {
-           $(`#${id} .schedule`).data('value', $(`#${id} .schedule`).val()),
-           $(`#${id} .title`).data('value', $(`#${id} .title`).val()),
-           $(`#${id} .uri`).data('value', $(`#${id} .uri`).val()),
-           $(`#${id} .selector`).data('value', $(`#${id} .selector`).val()),
-           $(`#${id} .slack`).data('value', $(`#${id} .slack`).val()),
+            let updatedValue = {
+              schedule: $(`#${id} .schedule`).val(),
+              project: $(`#${id} .project`).val(),
+              template: $(`#${id} .template`).val(),
+              title: $(`#${id} .title`).val(),
+              parent: $(`#${id} .parent`).val(),
+              date_diff: $(`#${id} .date_diff`).val(),
+              slack: $(`#${id} .slack`).val(),
+              updatedUser: firebase.auth().currentUser.email,
+            }
+            let accessKey = $(`#${id} .access_key`).val();
+            if (accessKey !== "") { updatedValue.access_key = accessKey; }
 
-           $(`#${id} input`).prop('readonly', true);
-           $(`button.edit`).prop('disabled', false);
-           $(`#save-${id}`).hide();
-           $(`#edit-${id}`).show();
-           $('.delete').show();
-           $(`#cancel-${id}`).hide();
+            db.collection('schedules').doc(id).set(
+              updatedValue
+              , { merge: true }).then(() => {
+                $(`#${id} .schedule`).data('value', $(`#${id} .schedule`).val());
+                $(`#${id} .project`).data('value', $(`#${id} .project`).val());
+                $(`#${id} .template`).data('value', $(`#${id} .template`).val());
+                $(`#${id} .title`).data('value', $(`#${id} .title`).val());
+                $(`#${id} .parent`).data('value', $(`#${id} .parent`).val());
+                $(`#${id} .date_diff`).data('value', $(`#${id} .date_diff`).val());
+                $(`#${id} .slack`).data('value', $(`#${id} .slack`).val());
+                $(`#${id} .access_key`).data('value', '');
 
-           $('#loading').fadeOut(0);
-         }).catch(err => {
-           console.error(err);
-           alert(err);
-         });
-       });
+                $(`#${id} input`).prop('readonly', true);
+                $(`button.edit`).prop('disabled', false);
+                $(`#save-${id}`).hide();
+                $(`#edit-${id}`).show();
+                $('.delete').show();
+                $(`#cancel-${id}`).hide();
 
-       $(`#cancel-${id}`).on('click', (event) => {
-         $(`#${id} input`).prop('readonly', true)
-                          .each((i, dom) => { $(dom).val($(dom).data('value')); });
-         $(`button.edit`).prop('disabled', false);
-         $(`#save-${id}`).hide();
-         $(`#edit-${id}`).show();
-         $('.delete').show();
-         $(`#cancel-${id}`).hide();
-       });
+                $('#loading').fadeOut(0);
+              }).catch(err => {
+                console.error(err);
+                alert(err);
+              });
+          });
 
-       $(`#delete-${id}`).on('click', (event) => {
-         if(!confirm('本当に削除しますか？')) { return; }
+          $(`#cancel-${id}`).on('click', (event) => {
+            $(`#${id} input`).prop('readonly', true)
+              .each((i, dom) => { $(dom).val($(dom).data('value')); });
+            $(`button.edit`).prop('disabled', false);
+            $(`#save-${id}`).hide();
+            $(`#edit-${id}`).show();
+            $('.delete').show();
+            $(`#cancel-${id}`).hide();
+          });
 
-         $('#loading').show().fadeIn();
-         db.collection('schedules').doc(id).delete().then(() => {
-           $('#loading').fadeOut(0);
-           alert('削除されました');
-           $(`#${id}`).remove();
-         }).catch(err => {
-           console.error(err);
-           alert(err);
-         });
-       });
-     });
+          $(`#delete-${id}`).on('click', (event) => {
+            if (!confirm('本当に削除しますか？')) { return; }
 
-       $(`#create-button`).on('click', (event) => {
-         $('#loading').show().fadeIn();
+            $('#loading').show().fadeIn();
+            db.collection('schedules').doc(id).delete().then(() => {
+              $('#loading').fadeOut(0);
+              alert('削除されました');
+              $(`#${id}`).remove();
+            }).catch(err => {
+              console.error(err);
+              alert(err);
+            });
+          });
+        });
 
-         const _schedule = $('#create .schedule').val();
-         const _uri = $('#create .uri').val();
-         const _title = $('#create .title').val();
-         const _selector = $('#create .selector').val();
-         const _slack = $('#create .slack').val() || '';
+        $('#create input').on('change', (event) => {
+          const _project = $('#create .project').val();
+          const _title = $('#create .title').val();
+          const _template = $('#create .template').val();
+          $('#generated-page a').text(`https://redmine.aiming-inc.biz/projects/${_project}/wiki/${_title}`);
+          $('#generated-page a').attr('href', `https://redmine.aiming-inc.biz/projects/${_project}/wiki/${_title}`);
+          $('#template-page a').text(`https://redmine.aiming-inc.biz/projects/${_project}/wiki/${_template}`);
+          $('#template-page a').attr('href', `https://redmine.aiming-inc.biz/projects/${_project}/wiki/${_template}`);
+        });
 
-         if(!(_schedule.match(/^.*\s.*\s.*\s.*\s.*$/) && _title && _uri.match(/^http(s)?:\/\/.+$/) && _selector)) {
-           $('#loading').show().fadeOut();
-           alert('すべての項目を入力してください');
-           return;
-         }
+        $('#create-button').on('click', (event) => {
+          console.log('on')
+          $('#loading').show().fadeIn();
 
-         db.collection('schedules').add({
-           schedule: _schedule,
-           uri: _uri,
-           title: _title,
-           selector: _selector,
-           slack: _slack,
-           createdUser: firebase.auth().currentUser.email,
-           createdAt: +new Date(),
-           checkedAt: +new Date()
-         }).then(() => {
-           location.href = 'index.html';
-           $('#loading').fadeOut(0);
-         }).catch(err => {
-           console.error(err);
-           alert(err);
-         });
-       });
+          const _schedule = $('#create .schedule').val();
+          const _project = $('#create .project').val();
+          const _template = $('#create .template').val();
+          const _title = $('#create .title').val();
+          const _parent = $('#create .parent').val();
+          const _date_diff = $('#create .date_diff').val();
+          const _slack = $('#create .slack').val() || '';
+          const _access_key = $('#create .access_key').val() || '';
 
-     });
+          if (!(_schedule.match(/^.*\s.*\s.*\s.*\s.*$/) && _project && _template && _title)) {
+            $('#loading').show().fadeOut();
+            alert('すべての項目を入力してください');
+            return;
+          }
+
+          db.collection('schedules').add({
+            schedule: _schedule,
+            project: _project,
+            template: _template,
+            title: _title,
+            parent: _parent,
+            date_diff: _date_diff,
+            slack: _slack,
+            access_key: _access_key,
+            createdUser: firebase.auth().currentUser.email,
+            createdAt: +new Date(),
+            checkedAt: +new Date()
+          }).then(() => {
+            location.href = 'index.html';
+            $('#loading').fadeOut(0);
+          }).catch(err => {
+            console.error(err);
+            alert(err);
+          });
+        });
+
+      });
     </script>
-  </body>
+</body>
+
 </html>
