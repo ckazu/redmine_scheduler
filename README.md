@@ -1,4 +1,4 @@
-# web_checker
+# redmine_scheduler
 
 ## デプロイ方法
 
