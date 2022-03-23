@@ -5,7 +5,7 @@ exports.generateTemplateUrl = (domain, project, template) => (
 );
 
 exports.generateTargetUrl = (domain, project, title, dateDiff) => {
-  const date = moment().add(-dateDiff, 'days');
+  const date = moment().add(dateDiff, 'days');
   const titleWithDate = title.
     replace('YYYY', date.format('YYYY')).
     replace('MM', date.format('MM')).

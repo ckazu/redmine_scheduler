@@ -26,8 +26,8 @@
       <table class="table">
         <thead>
           <tr>
-            <th>実行間隔（日付の指定日）</th>
-            <th>何日前に生成するか</th>
+            <th>ページの生成日</th>
+            <th>タイトルの日付を何日ずらすか</th>
             <th>Slack 通知先</th>
             <th>APIアクセスキー</th>
           </tr>
@@ -42,12 +42,12 @@
                   例3) 平日の18時 => <b>* 18 * * 1-5</b><br />
                   例4) 毎月5,15,25日 => <b>* 10 5,15,25 * *</b>
                 </small></td>
-            <td><input type="number" class="form-control date_diff" placeholder="-2" max="0"></input>
+            <td><input type="number" class="form-control date_diff" placeholder="1" min="0"></input>
               <small class="form-text text-muted">
-                ページ名の n日前に生成します<br />
+                生成日の n 日後の日付をタイトルに付けます<br />
                 0: 当日<br />
-                -1: 1 日前<br />
-                -2: 2 日前<br />
+                1: 1 日後<br />
+                2: 2 日後<br />
                 ...<br />
               </small></td>
             <td><input type="text" class="form-control slack" placeholder="#slack"></input><small
@@ -96,8 +96,8 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th>実行間隔</th>
-            <th>生成日</th>
+            <th>生成間隔</th>
+            <th>日付(n日後)</th>
             <th>Slack 通知先</th>
             <th>プロジェクト</th>
             <th>テンプレート</th>
