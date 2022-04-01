@@ -55,6 +55,5 @@ const slackErrorFormat = (scheduleId, schedule, hostingUrl, err) => {
         ]
       }]
   };
-  if (typeof schedule.slack !== 'undefined') { data['channel'] = schedule.slack; };
   return Buffer.from(JSON.stringify(data));
 };
