@@ -27,9 +27,11 @@ module.exports = webCrawlerLib;
 
 // todo: classify arguments
 const slackFormat = (schedule, url) => {
-  let titleText = `[${url}] が新規追加されました`;
+  const titleText = url;
+  const message = schedule.slack_message || "ページが新規追加されました。";
 
   let data = {
+    text: message,
     attachments: [
       {
         title: titleText,

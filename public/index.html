@@ -57,6 +57,7 @@
           </tr>
         </tbody>
       </table>
+
       <table class="table table-sm">
         <thead>
           <tr>
@@ -83,6 +84,21 @@
           </tr>
         </tbody>
       </table>
+
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Slack メッセージ</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td><input type="text" class="form-control slack_message" placeholder=""></input></td>
+          </tr>
+        </tbody>
+      </table>
+
       <div>
         <h6>テンプレートページ</h6>
         <code id="template-page"><a target="_BLANK">https://</a></code>
@@ -104,6 +120,7 @@
             <th>タイトル</th>
             <th>親ページ</th>
             <th>アクセスキー</th>
+            <th>Slack メッセージ</th>
           </tr>
         </thead>
         <tbody id="records">
@@ -138,11 +155,12 @@
   <td><input type="text" class="form-control title"      readonly="readonly" value="${schedule.data().title}"     data-value="${schedule.data().title}"></input></td>
   <td><input type="text" class="form-control parent"     readonly="readonly" value="${schedule.data().parent}"    data-value="${schedule.data().parent}"></input></td>
   <td><input type="text" class="form-control access_key" readonly="readonly" placeholder="非表示"></input></td>
+  <td><input type="text" class="form-control slack_message" readonly="readonly" value="${schedule.data().slack_message}"    data-value="${schedule.data().slack_message}"></input></td>
 </tr>
 <tr>
   <td colspan="2"><small class="form-text text-muted">ID: ${id}</small></td>
   <td colspan="2"><small class="form-text text-muted">作成者: ${schedule.data().createdUser}<br/>最終更新者: ${schedule.data().updatedUser}</small></td>
-  <td colspan="2" class="text-right"><small class="form-text text-muted">最終チェック日時: ${new Date(schedule.data().checkedAt).toLocaleString()}</small></td>
+  <td colspan="3" class="text-right"><small class="form-text text-muted">最終チェック日時: ${new Date(schedule.data().checkedAt).toLocaleString()}</small></td>
   <td colspan="2" class="text-right"><button id="edit-${schedule.id}"   class="edit   btn btn-primary" data-id="${schedule.id}">編集</button>
       <button id="save-${schedule.id}"   class="save   btn btn-primary" data-id="${schedule.id}">保存</button>
       <button id="cancel-${schedule.id}" class="cancel btn btn-light"   data-id="${schedule.id}">x</button>
@@ -174,6 +192,7 @@
               parent: $(`#${id} .parent`).val(),
               date_diff: $(`#${id} .date_diff`).val(),
               slack: $(`#${id} .slack`).val(),
+              slack_message: $(`#${id} .slack_message`).val(),
               updatedUser: firebase.auth().currentUser.email,
             }
             let accessKey = $(`#${id} .access_key`).val();
@@ -190,6 +209,7 @@
                 $(`#${id} .date_diff`).data('value', $(`#${id} .date_diff`).val());
                 $(`#${id} .slack`).data('value', $(`#${id} .slack`).val());
                 $(`#${id} .access_key`).data('value', '');
+                $(`#${id} .slack_message`).data('value', $(`#${id} .slack_message`).val());
 
                 $(`#${id} input`).prop('readonly', true);
                 $(`button.edit`).prop('disabled', false);
